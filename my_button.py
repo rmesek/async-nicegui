@@ -9,9 +9,9 @@ class MyButton:
     def set_callback(self, callback):
         self.click_callback = callback
 
-    def handle_click(self):
-        ui.notify('Button clicked!')
+    async def handle_click(self):
+        # ui.notify('Button clicked!')
         if self.click_callback is not None:
-            self.click_callback()
+            await self.click_callback()
         else:
             ui.notify('No callback set!')

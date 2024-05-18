@@ -1,8 +1,6 @@
-from engine import Engine
-from typing import TYPE_CHECKING
-
-# if TYPE_CHECKING:
 from nicegui import ui
+import asyncio
+from engine import Engine
 
 
 class Runner:
@@ -10,17 +8,30 @@ class Runner:
         self.button = button
         self.label: ui.label = label
         self.my_task = Engine()
+        self.task_running = False
 
-    def run_loop(self):
-        result = self.my_task.my_task_loop()
+    async def run_loop(self):
+        result = await asyncio.to_thread(self.my_task.my_task_loop)
         self.label.set_text(result)
 
-    def run_sleep(self) -> str:
-        result = self.my_task.my_task_sleep(10)
+    async def run_sleep(self):
+        result = await asyncio.to_thread(self.my_task.my_task_sleep, 10)
         self.label.set_text(result)
 
     def stop(self): ...
 
-    def handle_callback(self):
+    async def handle_callback(self, task_type: str):
+        if self.task_running:
+            ui.notify("Task already running!")
+            return
         ui.notify("Handling callback!")
-        self.run_sleep()
+        self.label.set_text("Handling click!")
+
+        self.task_running = True
+        try:
+            if task_type == "loop":
+                await self.run_loop()
+            else:
+                await self.run_sleep()
+        finally:
+            self.task_running = False

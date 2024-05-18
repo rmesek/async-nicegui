@@ -1,5 +1,6 @@
 from nicegui import ui
 from datetime import datetime
+from typing import Literal
 
 from runner import Runner
 from my_button import MyButton
@@ -10,17 +11,16 @@ ui.timer(1.0, lambda: timer_label.set_text(f"{datetime.now():%X}"))
 setup_button = ui.button("Setup runner")
 button = MyButton()
 label = ui.label("My label!")
-# button.on_click(lambda: label.set_text('Hello, world!'))
 
 
-def setup_runner(arg):
+def setup_runner(arg: Literal["loop", "sleep"]):
     # label.update()
     ui.notify(f"Starting task with {arg=}")
     runner = Runner(button, label)
-    button.click_callback = runner.handle_callback
+    button.click_callback = lambda: runner.handle_callback(arg)
 
 
-setup_button.on_click(lambda _: setup_runner("my_arg"))
+setup_button.on_click(lambda: setup_runner("sleep"))
 
 # TODO: Not a fix! This is a workaround!
 ui.run(reconnect_timeout=60)
