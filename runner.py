@@ -1,37 +1,40 @@
 from nicegui import ui
-import asyncio
 from engine import Engine
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from my_button import MyButton
 
 
 class Runner:
     def __init__(self, button, label):
-        self.button = button
+        self.my_button: MyButton = button
         self.label: ui.label = label
         self.my_task = Engine()
         self.task_running = False
 
-    async def run_loop(self):
-        result = await asyncio.to_thread(self.my_task.my_task_loop)
-        self.label.set_text(result)
+    def run_loop(self):
+        result = self.my_task.my_task_loop()
+        with self.label:
+            self.label.set_text(result)
 
-    async def run_sleep(self):
-        result = await asyncio.to_thread(self.my_task.my_task_sleep, 10)
-        self.label.set_text(result)
+    def run_sleep(self):
+        result = self.my_task.my_task_sleep(10)
+        with self.label:
+            self.label.set_text(result)
 
     def stop(self): ...
 
-    async def handle_callback(self, task_type: str):
-        if self.task_running:
-            ui.notify("Task already running!")
-            return
-        ui.notify("Handling callback!")
-        self.label.set_text("Handling click!")
+    def handle_callback(self, task_type: str):
+        with self.my_button.button:
+            ui.notify("Handling callback!")
+        with self.label:
+            self.label.set_text("Handling callback!")
 
-        self.task_running = True
-        try:
-            if task_type == "loop":
-                await self.run_loop()
-            else:
-                await self.run_sleep()
-        finally:
-            self.task_running = False
+        if task_type == "loop":
+            self.run_loop()
+        else:
+            self.run_sleep()
+
+        with self.my_button.button:
+            ui.notify("Callback handled!")
